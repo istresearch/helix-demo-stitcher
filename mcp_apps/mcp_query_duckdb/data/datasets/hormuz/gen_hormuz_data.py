@@ -466,7 +466,7 @@ class HormuzDataGenerator:
         ]
         self.save_csv(
             [{k: v for k, v in r.items() if k in cdr_fieldnames} for r in cdr_records],
-            '../../hormuz/cdr.csv',
+            'cdr.csv',
             cdr_fieldnames
         )
 
@@ -483,7 +483,7 @@ class HormuzDataGenerator:
         ]
         self.save_csv(
             [{k: v for k, v in r.items() if k in maid_fieldnames} for r in maid_records],
-            '../../hormuz/maid.csv',
+            'maid.csv',
             maid_fieldnames
         )
 
@@ -496,7 +496,7 @@ class HormuzDataGenerator:
         ]
         self.save_csv(
             connections,
-            '../../hormuz/connections_with_confidence.csv',
+            'connections_with_confidence.csv',
             connection_fieldnames
         )
 

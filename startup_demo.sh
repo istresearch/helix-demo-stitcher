@@ -141,15 +141,14 @@ check_config_files() {
     fi
     log_success ".env file found"
 
-    # Check for .duckdb file in mcp_query_duckdb/data/ directory
-    local duckdb_dir="$DEMO_DIR/mcp_apps/mcp_query_duckdb/data"
+    # Check for .duckdb file in mcp_query_duckdb/data/databases/ directory
+    local duckdb_dir="$DEMO_DIR/mcp_apps/mcp_query_duckdb/data/databases"
     if [ ! -d "$duckdb_dir" ]; then
-        log_warning "Directory not found: $duckdb_dir"
+        log_info "No databases/ directory yet — will be created in Phase 1"
     else
         local duckdb_file=$(find "$duckdb_dir" -name "*.duckdb" -type f 2>/dev/null | head -1)
         if [ -z "$duckdb_file" ]; then
-            log_warning "No .duckdb files found in $duckdb_dir"
-            log_info "MCP Query DuckDB service may not work without a database file"
+            log_info "No .duckdb files found yet — will be built in Phase 1"
         else
             log_success ".duckdb file found: $(basename "$duckdb_file")"
         fi
@@ -238,8 +237,19 @@ build_demo_datasets() {
         # Generator outputs to ./generated/ subdirectory
         local CSV_OUTPUT_DIR="$DATASETS_DIR/$DEMO_DATASET/generated"
 
+        # Detect available Python binary
+        local PYTHON_BIN
+        if command -v python3 &> /dev/null; then
+            PYTHON_BIN="python3"
+        elif command -v python &> /dev/null; then
+            PYTHON_BIN="python"
+        else
+            log_warning "Python not found. Cannot generate dataset."
+            return 1
+        fi
+
         # Build generator command with optional seed parameter
-        local GENERATOR_CMD="python gen_${DEMO_DATASET}_data.py"
+        local GENERATOR_CMD="$PYTHON_BIN gen_${DEMO_DATASET}_data.py --output-dir ."
         if [ -n "${DEMO_REPEATABLE_SEED}" ] && [ "${DEMO_REPEATABLE_SEED}" != "0" ]; then
             GENERATOR_CMD="$GENERATOR_CMD --seed ${DEMO_REPEATABLE_SEED}"
             log_info "Using seed: ${DEMO_REPEATABLE_SEED} (repeatable generation)"
@@ -256,14 +266,26 @@ build_demo_datasets() {
         log_info "PHASE 2: Converting CSV files to DuckDB"
         echo "════════════════════════════════════════════════════════════"
         echo ""
+
+        # Ensure duckdb Python package is available
+        if ! $PYTHON_BIN -c "import duckdb" 2>/dev/null; then
+            log_info "Installing duckdb Python package..."
+            if $PYTHON_BIN -m pip install duckdb --quiet 2>/dev/null; then
+                log_success "duckdb installed"
+            else
+                log_warning "Failed to install duckdb. Install manually: pip install duckdb"
+                return 1
+            fi
+        fi
+
         log_info "Converting CSV files to DuckDB..."
 
         # Ensure database directory exists
         mkdir -p "$DB_DIR"
 
         (cd "$DATASETS_DIR/$DEMO_DATASET" && \
-         python ../../csv_to_duckdb.py \
-            --directory "./generated" \
+         $PYTHON_BIN ../../csv_to_duckdb.py \
+            --directory "." \
             --db "$DB_FILE") || {
             log_warning "Failed to convert CSV to DuckDB for dataset $DEMO_DATASET"
             return 1
