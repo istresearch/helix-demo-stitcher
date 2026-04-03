@@ -1,0 +1,562 @@
+ Image demo-currency-agent Building 
+ Image local/helix:latest Building 
+ Image a2a-registry Building 
+ Image local/helix-examples:latest Building 
+ Image demo-weather-agent Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.82kB done
+#1 DONE 0.0s
+
+#2 [helix-examples-build internal] load build definition from Dockerfile
+#2 transferring dockerfile: 2.32kB done
+#2 DONE 0.0s
+
+#3 [helix-base internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.05kB done
+#3 DONE 0.0s
+
+#4 [registry internal] load build definition from Dockerfile
+#4 transferring dockerfile: 193B done
+#4 DONE 0.0s
+
+#5 [currency-agent internal] load build definition from Containerfile
+#5 transferring dockerfile: 1.50kB done
+#5 DONE 0.0s
+
+#6 [weather-agent internal] load build definition from Containerfile
+#6 transferring dockerfile: 646B done
+#6 DONE 0.0s
+
+#7 [auth] library/python:pull token for registry-1.docker.io
+#7 DONE 0.0s
+
+#8 [helix-examples-build internal] load metadata for docker.io/local/helix:latest
+#8 DONE 0.1s
+
+#9 [weather-agent internal] load metadata for registry.access.redhat.com/ubi8/python-312:latest
+#9 DONE 0.3s
+
+#10 [helix-examples-build internal] load metadata for docker.io/istresearch/golden-image:dhi-python-3.12-debian13-dev
+#10 DONE 0.3s
+
+#11 [helix-base internal] load .dockerignore
+#11 transferring context: 2B done
+#11 DONE 0.0s
+
+#12 [helix-base internal] load metadata for docker.io/istresearch/golden-image:dhi-python-3.12
+#12 DONE 0.3s
+
+#13 [weather-agent internal] load .dockerignore
+#13 transferring context: 2B done
+#13 DONE 0.0s
+
+#14 [currency-agent internal] load .dockerignore
+#14 transferring context: 2B done
+#14 DONE 0.0s
+
+#15 [helix-base internal] load build context
+#15 transferring context: 11.76kB done
+#15 DONE 0.0s
+
+#16 [helix-base build 1/7] FROM docker.io/istresearch/golden-image:dhi-python-3.12-debian13-dev@sha256:9517b2f0cb30d969f5ca39b6f6219833bd45e6282a11b767cdc26cd23a7f2c44
+#16 resolve docker.io/istresearch/golden-image:dhi-python-3.12-debian13-dev@sha256:9517b2f0cb30d969f5ca39b6f6219833bd45e6282a11b767cdc26cd23a7f2c44 0.0s done
+#16 DONE 0.0s
+
+#17 [helix-base final 1/5] FROM docker.io/istresearch/golden-image:dhi-python-3.12@sha256:69bea8ece31015556582afd6e7b5ec8c644838e7af5f296463e58b1c6d4fad01
+#17 resolve docker.io/istresearch/golden-image:dhi-python-3.12@sha256:69bea8ece31015556582afd6e7b5ec8c644838e7af5f296463e58b1c6d4fad01 0.0s done
+#17 DONE 0.0s
+
+#18 [helix-base final 3/5] WORKDIR /usr/src/app/chat
+#18 CACHED
+
+#19 [helix-base build 6/7] COPY chat/pyproject.toml ./chat/pyproject.toml
+#19 CACHED
+
+#20 [helix-base build 7/7] RUN python -m venv --copies /app/venv  && . /app/venv/bin/activate  && pip install --upgrade pip uv  && uv sync --active
+#20 CACHED
+
+#21 [helix-base final 2/5] COPY --from=build /app/venv /app/venv/
+#21 CACHED
+
+#22 [helix-base build 5/7] COPY uv.lock .
+#22 CACHED
+
+#23 [helix-base final 4/5] COPY ./chat/chat_service ./chat_service
+#23 CACHED
+
+#24 [helix-base build 4/7] COPY pyproject.toml .
+#24 CACHED
+
+#25 [helix-base final 5/5] COPY ./chat/config ./config
+#25 CACHED
+
+#26 [helix-examples-build base-service 1/1] FROM docker.io/local/helix:latest@sha256:7b89eaa838967caad30084ccf3b48716f614b3f1cc2adb8b37e15c5413fc7e15
+#26 resolve docker.io/local/helix:latest@sha256:7b89eaa838967caad30084ccf3b48716f614b3f1cc2adb8b37e15c5413fc7e15 0.0s done
+#26 DONE 0.0s
+
+#27 [currency-agent stage-0 1/7] FROM registry.access.redhat.com/ubi8/python-312:latest@sha256:e03cded814326babe0a6a8d66f40d03c03fbdb6ff09c48ac203d684977f09853
+#27 resolve registry.access.redhat.com/ubi8/python-312:latest@sha256:e03cded814326babe0a6a8d66f40d03c03fbdb6ff09c48ac203d684977f09853 done
+#27 DONE 0.0s
+
+#28 [currency-agent internal] load build context
+#28 transferring context: 499B done
+#28 DONE 0.0s
+
+#29 [weather-agent internal] load build context
+#29 transferring context: 289B done
+#29 DONE 0.0s
+
+#30 [helix-examples-build internal] load build context
+#30 transferring context: 15.66kB done
+#30 DONE 0.0s
+
+#31 [currency-agent stage-0 3/7] COPY . /opt/app-root
+#31 CACHED
+
+#32 [currency-agent stage-0 6/7] RUN --mount=type=cache,target=/.cache/uv     uv sync --frozen --no-dev
+#32 CACHED
+
+#33 [currency-agent stage-0 4/7] RUN dnf -y update && dnf install -y gcc gcc-c++  && pip install uv
+#33 CACHED
+
+#34 [currency-agent stage-0 5/7] RUN --mount=type=cache,target=/.cache/uv     uv sync --frozen --no-install-project --no-dev
+#34 CACHED
+
+#35 [weather-agent stage-0 4/7] RUN dnf -y update && dnf install -y gcc gcc-c++  && pip install uv
+#35 CACHED
+
+#36 [weather-agent stage-0 5/7] RUN --mount=type=cache,target=/.cache/uv     uv sync --frozen --no-install-project --no-dev
+#36 CACHED
+
+#37 [weather-agent stage-0 6/7] RUN --mount=type=cache,target=/.cache/uv     uv sync --frozen --no-dev
+#37 CACHED
+
+#38 [weather-agent stage-0 3/7] COPY . /opt/app-root
+#38 CACHED
+
+#39 [weather-agent stage-0 2/7] WORKDIR /opt/app-root
+#39 CACHED
+
+#40 [weather-agent stage-0 7/7] RUN chgrp -R root /opt/app-root/ && chmod -R g+rwx /opt/app-root/
+#40 CACHED
+
+#41 [currency-agent stage-0 7/7] RUN chgrp -R root /opt/app-root/ && chmod -R g+rwx /opt/app-root/
+#41 CACHED
+
+#42 [helix-examples-build build 15/15] RUN rm ./config/workflows/hello_autogen.conf
+#42 CACHED
+
+#43 [helix-examples-build build 13/15] RUN find ../chat_examples/workflow -name '*.conf' -exec cp {} ./config/workflows/ ;
+#43 CACHED
+
+#44 [helix-examples-build build  4/15] COPY --chown=nonroot:nonroot --from=base-service /usr/src/app/ /usr/src/app/
+#44 CACHED
+
+#45 [helix-examples-build build 14/15] RUN find ../chat_examples/workflow -type d -name 'prompts' | while read dir; do cp "$dir"/*.txt ./config/prompts/; done
+#45 CACHED
+
+#46 [helix-examples-build build  5/15] COPY --chown=nonroot:nonroot pyproject.toml .
+#46 CACHED
+
+#47 [helix-examples-build build  7/15] COPY --chown=nonroot:nonroot chat/pyproject.toml ./chat/pyproject.toml
+#47 CACHED
+
+#48 [helix-examples-build build 3/7] WORKDIR /usr/src/app
+#48 CACHED
+
+#49 [helix-examples-build build 10/15] RUN . /app/venv/bin/activate  && uv sync --active --extra langgraph
+#49 CACHED
+
+#50 [helix-examples-build build 12/15] COPY --chown=nonroot:nonroot ./chat_examples/workflow ../chat_examples/workflow
+#50 CACHED
+
+#51 [helix-examples-build final 2/4] COPY --from=build /app/venv /app/venv/
+#51 CACHED
+
+#52 [helix-examples-build final 3/4] COPY --chown=nonroot:nonroot --from=build /usr/src/app/ /usr/src/app/
+#52 CACHED
+
+#53 [helix-examples-build build  6/15] COPY --chown=nonroot:nonroot uv.lock .
+#53 CACHED
+
+#54 [helix-examples-build build 2/7] RUN pip install --upgrade pip
+#54 CACHED
+
+#55 [helix-examples-build build  9/15] COPY --from=base-service /app/venv /app/venv/
+#55 CACHED
+
+#56 [helix-examples-build build 11/15] WORKDIR /usr/src/app/chat
+#56 CACHED
+
+#57 [helix-examples-build build  8/15] COPY --chown=nonroot:nonroot chat_examples/pyproject.toml ./chat_examples/pyproject.toml
+#57 CACHED
+
+#58 [helix-examples-build final 4/4] WORKDIR /usr/src/app/chat
+#58 CACHED
+
+#59 [helix-base] exporting to image
+#59 exporting layers done
+#59 exporting manifest sha256:dece14dedd8e9f82f875dab83b0e5290e3a862e4558f8318db6df551a4e1cca6 done
+#59 exporting config sha256:11b6cc4feb0972d01ccfa5af350a8a2971bf3db8f9091821806033d6a8921caf done
+#59 exporting attestation manifest sha256:7b159f8a632b7be101f55d9020572420406c99b61403010b3f57b7fefb230adf done
+#59 exporting manifest list sha256:38764a02f7433dc991657d4d115536c1ed3e978ba845b6b7163e90464811943a done
+#59 naming to docker.io/local/helix:latest done
+#59 unpacking to docker.io/local/helix:latest done
+#59 DONE 0.1s
+
+#60 [weather-agent] exporting to image
+#60 exporting layers done
+#60 exporting manifest sha256:8f5beee417dcf88ec08d5d759706e3fc226fee89a3b4d95e9ea72aab8a309f72 done
+#60 exporting config sha256:b9f2ce8c331e8f65763385aedbe30323d3a074a740bd580877ee89e9945d0d8a done
+#60 exporting attestation manifest sha256:a9fd56e9f34298abfa3b72c4813de1ce7aff8c6f2cbe5b945518459f26e8332f 0.0s done
+#60 exporting manifest list sha256:043c71bad027f0f6ea5f59d28a454e06cd731b039516b67d1cbea643fbb18277
+#60 exporting manifest list sha256:043c71bad027f0f6ea5f59d28a454e06cd731b039516b67d1cbea643fbb18277 0.0s done
+#60 naming to docker.io/library/demo-weather-agent:latest done
+#60 unpacking to docker.io/library/demo-weather-agent:latest done
+#60 DONE 0.1s
+
+#61 [helix-base] resolving provenance for metadata file
+#61 DONE 0.0s
+
+#62 [currency-agent] exporting to image
+#62 exporting layers done
+#62 exporting manifest sha256:7ee5a722bbeb25c949d5de410c2c65905d29a1d95d91b2f7171e33bf2c50007c done
+#62 exporting config sha256:f70e71786da9ab291da3f1f5ec75c9c16bc96527e9f5dac330ed23fddabc7bcf done
+#62 exporting attestation manifest sha256:06632d9b787bd866a1e9ed6b237388851cb136f2b581f165ee4816465d2714df 0.0s done
+#62 exporting manifest list sha256:b66e2674edf72ddab5d2fde6c9ab67163d15985efef236707c956a59183f05f0 0.0s done
+#62 naming to docker.io/library/demo-currency-agent:latest done
+#62 unpacking to docker.io/library/demo-currency-agent:latest done
+#62 DONE 0.1s
+
+#63 [helix-examples-build] exporting to image
+#63 exporting layers done
+#63 exporting manifest sha256:a6e03fa8af33fddfda86302cbce91b5b1943942eb5c84e74cc632cee1b5b8200 done
+#63 exporting config sha256:031505f45c54d63fc5a05e687851ce559ac1c8a038b83abfae6b3829c6b09cd2 done
+#63 exporting attestation manifest sha256:c62d5d77381fed0067edbf7005593803664d45c2b6497df51021c26f3d8cf53f 0.0s done
+#63 exporting manifest list sha256:9f02fc9d263c85a578cba717aded070b2d266d8f751de3f7f1543ed3c96738a9 0.0s done
+#63 naming to docker.io/local/helix-examples:latest done
+#63 unpacking to docker.io/local/helix-examples:latest 0.0s done
+#63 DONE 0.1s
+
+#64 [registry internal] load metadata for docker.io/library/python:3.12-slim
+#64 DONE 0.5s
+
+#65 [registry internal] load .dockerignore
+#65 transferring context: 2B done
+#65 DONE 0.0s
+
+#66 [registry internal] load build context
+#66 DONE 0.0s
+
+#67 [weather-agent] resolving provenance for metadata file
+#67 DONE 0.0s
+
+#68 [registry 1/5] FROM docker.io/library/python:3.12-slim@sha256:3d5ed973e45820f5ba5e46bd065bd88b3a504ff0724d85980dcd05eab361fcf4
+#68 resolve docker.io/library/python:3.12-slim@sha256:3d5ed973e45820f5ba5e46bd065bd88b3a504ff0724d85980dcd05eab361fcf4 0.0s done
+#68 DONE 0.0s
+
+#66 [registry internal] load build context
+#66 transferring context: 404B done
+#66 DONE 0.0s
+
+#69 [currency-agent] resolving provenance for metadata file
+#69 DONE 0.0s
+
+#70 [registry 3/5] COPY pyproject.toml .
+#70 CACHED
+
+#71 [registry 4/5] COPY app/ app/
+#71 CACHED
+
+#72 [registry 2/5] WORKDIR /app
+#72 CACHED
+
+#73 [helix-examples-build] resolving provenance for metadata file
+#73 DONE 0.0s
+
+#74 [registry 5/5] RUN pip install --no-cache-dir .
+#74 CACHED
+
+#75 [registry] exporting to image
+#75 exporting layers done
+#75 exporting manifest sha256:317ed31885ff971f41e9a729f2a34be7204d64ecc67bafa5da4fc5a79f9578a5 done
+#75 exporting config sha256:a1d7a2d0a3ce6c31414bec2abc180aaf7361986344547cc115df15ee112f844e done
+#75 exporting attestation manifest sha256:3feb9b607fd7b49f72c61be1a7abc7ad4d45bb6156a76e661a58cdb6cb8c0662 done
+#75 exporting manifest list sha256:653d745064b786c97b6308536a69dede024c5b24f028185bb6f41f6d260bee1c done
+#75 naming to docker.io/library/a2a-registry:latest done
+#75 unpacking to docker.io/library/a2a-registry:latest done
+#75 DONE 0.0s
+
+#76 [registry] resolving provenance for metadata file
+#76 DONE 0.0s
+ Image demo-currency-agent Built 
+ Image a2a-registry Built 
+ Image local/helix:latest Built 
+ Image local/helix-examples:latest Built 
+ Image demo-weather-agent Built 
+ Container a2a-registry-1 Creating 
+ Container a2a-weather-agent-1 Creating 
+ Container a2a-helix-base-1 Recreate 
+ Container a2a-redis-1 Creating 
+ Container a2a-minio-1 Creating 
+ Container a2a-postgres-1 Creating 
+ Container a2a-currency-agent-1 Creating 
+ Container a2a-clickhouse-1 Creating 
+ Container a2a-minio-1 Created 
+ Container a2a-currency-agent-1 Created 
+ Container a2a-weather-agent-1 Created 
+ Container a2a-registry-1 Created 
+ Container a2a-helix-a-1 Creating 
+ Container a2a-helix-b-1 Creating 
+ Container a2a-redis-1 Created 
+ Container a2a-clickhouse-1 Created 
+ Container a2a-postgres-1 Created 
+ Container a2a-langfuse-web-1 Creating 
+ Container a2a-langfuse-worker-1 Creating 
+ Container a2a-helix-b-1 Created 
+ Container a2a-helix-a-1 Created 
+ Container a2a-langfuse-worker-1 Created 
+ Container a2a-langfuse-web-1 Created 
+ Container a2a-helix-base-1 Recreated 
+ Container a2a-helix-examples-build-1 Recreate 
+ Container a2a-helix-examples-build-1 Recreated 
+Attaching to clickhouse-1, currency-agent-1, helix-a-1, helix-b-1, helix-base-1, helix-examples-build-1, langfuse-web-1, langfuse-worker-1, minio-1, postgres-1, redis-1, registry-1, weather-agent-1
+ Container a2a-weather-agent-1 Starting 
+ Container a2a-helix-base-1 Starting 
+ Container a2a-postgres-1 Starting 
+ Container a2a-clickhouse-1 Starting 
+ Container a2a-currency-agent-1 Starting 
+ Container a2a-minio-1 Starting 
+ Container a2a-registry-1 Starting 
+ Container a2a-redis-1 Starting 
+ Container a2a-minio-1 Started 
+ Container a2a-currency-agent-1 Started 
+currency-agent-1  | warning: `VIRTUAL_ENV=.` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+ Container a2a-registry-1 Started 
+ Container a2a-registry-1 Waiting 
+currency-agent-1  |    Building a2a-sample-agent-langgraph @ file:///opt/app-root
+ Container a2a-clickhouse-1 Started 
+ Container a2a-helix-base-1 Started 
+ Container a2a-helix-base-1 Waiting 
+ Container a2a-postgres-1 Started 
+postgres-1        | 
+postgres-1        | PostgreSQL Database directory appears to contain a database; Skipping initialization
+postgres-1        | 
+ Container a2a-weather-agent-1 Started 
+ Container a2a-registry-1 Waiting 
+postgres-1        | 2026-03-26 19:38:44.159 UTC [1] LOG:  starting PostgreSQL 17.9 (Debian 17.9-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres-1        | 2026-03-26 19:38:44.159 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres-1        | 2026-03-26 19:38:44.159 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+ Container a2a-redis-1 Started 
+ Container a2a-minio-1 Waiting 
+ Container a2a-redis-1 Waiting 
+ Container a2a-clickhouse-1 Waiting 
+ Container a2a-postgres-1 Waiting 
+ Container a2a-clickhouse-1 Waiting 
+ Container a2a-minio-1 Waiting 
+ Container a2a-postgres-1 Waiting 
+ Container a2a-redis-1 Waiting 
+redis-1           | 1:C 26 Mar 2026 19:38:44.163 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis-1           | 1:C 26 Mar 2026 19:38:44.163 * Redis version=7.4.8, bits=64, commit=00000000, modified=0, pid=1, just started
+redis-1           | 1:C 26 Mar 2026 19:38:44.163 * Configuration loaded
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * monotonic clock: POSIX clock_gettime
+postgres-1        | 2026-03-26 19:38:44.163 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * Running mode=standalone, port=6379.
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * Server initialized
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * Loading RDB produced by version 7.4.8
+weather-agent-1   | warning: `VIRTUAL_ENV=.` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * RDB age 9 seconds
+redis-1           | 1:M 26 Mar 2026 19:38:44.163 * RDB memory usage when created 2.37 Mb
+redis-1           | 1:M 26 Mar 2026 19:38:44.164 * Done loading RDB, keys loaded: 185, keys expired: 0.
+redis-1           | 1:M 26 Mar 2026 19:38:44.164 * DB loaded from disk: 0.001 seconds
+redis-1           | 1:M 26 Mar 2026 19:38:44.164 * Ready to accept connections tcp
+postgres-1        | 2026-03-26 19:38:44.165 UTC [29] LOG:  database system was shut down at 2026-03-26 19:38:35 UTC
+postgres-1        | 2026-03-26 19:38:44.168 UTC [1] LOG:  database system is ready to accept connections
+weather-agent-1   |    Building a2a-sample-agent-langgraph-weather @ file:///opt/app-root
+clickhouse-1      | /entrypoint.sh: create new user 'clickhouse' instead 'default'
+clickhouse-1      | ClickHouse Database directory appears to contain a database; Skipping initialization
+clickhouse-1      | Processing configuration file '/etc/clickhouse-server/config.xml'.
+clickhouse-1      | Merging configuration file '/etc/clickhouse-server/config.d/docker_related_config.xml'.
+clickhouse-1      | Logging trace to /var/log/clickhouse-server/clickhouse-server.log
+clickhouse-1      | Logging errors to /var/log/clickhouse-server/clickhouse-server.err.log
+registry-1        | INFO:     Started server process [1]
+registry-1        | INFO:     Waiting for application startup.
+registry-1        | INFO:     Application startup complete.
+registry-1        | INFO:     Uvicorn running on http://0.0.0.0:8100 (Press CTRL+C to quit)
+minio-1           | MinIO Object Storage Server
+minio-1           | Copyright: 2015-2026 MinIO, Inc.
+minio-1           | License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
+minio-1           | Version: DEVELOPMENT.2025-10-15T17-29-55Z (go1.25.8 linux/arm64)
+minio-1           | 
+minio-1           | API: http://172.18.0.2:9000  http://127.0.0.1:9000 
+minio-1           | WebUI: http://172.18.0.2:9001 http://127.0.0.1:9001  
+minio-1           | 
+minio-1           | Docs: https://docs.min.io
+currency-agent-1  |       Built a2a-sample-agent-langgraph @ file:///opt/app-root
+currency-agent-1  | Uninstalled 1 package in 5ms
+currency-agent-1  | Installed 1 package in 0.57ms
+weather-agent-1   |       Built a2a-sample-agent-langgraph-weather @ file:///opt/app-root
+currency-agent-1  | Bytecode compiled 3716 files in 100ms
+weather-agent-1   | Uninstalled 1 package in 3ms
+weather-agent-1   | Installed 1 package in 0.59ms
+weather-agent-1   | Bytecode compiled 3716 files in 88ms
+helix-base-1      | {"message": "Setting logging level to: INFO", "timestamp": "2026-03-26T19:38:45.101667+00:00", "logger": "root", "level": "INFO"}
+helix-base-1      | {"message": "Found prompt template", "file": "/usr/src/app/chat/config/prompts/citation_guidelines.txt", "timestamp": "2026-03-26T19:38:45.101826+00:00", "logger": "prompt.engine", "level": "INFO"}
+helix-base-1      | {"message": "Found prompt template", "file": "/usr/src/app/chat/config/prompts/tool_write_todos.txt", "timestamp": "2026-03-26T19:38:45.101984+00:00", "logger": "prompt.engine", "level": "INFO"}
+helix-base-1      | {"message": "Found prompt template", "file": "/usr/src/app/chat/config/prompts/models.csv", "timestamp": "2026-03-26T19:38:45.102065+00:00", "logger": "prompt.engine", "level": "INFO"}
+helix-base-1      | {"message": "Found prompt template", "file": "/usr/src/app/chat/config/prompts/tool_file_system.txt", "timestamp": "2026-03-26T19:38:45.102123+00:00", "logger": "prompt.engine", "level": "INFO"}
+helix-base-1      | {"message": "Found prompt template", "file": "/usr/src/app/chat/config/prompts/default_agent.txt", "timestamp": "2026-03-26T19:38:45.102169+00:00", "logger": "prompt.engine", "level": "INFO"}
+helix-base-1      | {"message": "Found workflow config", "file": "/usr/src/app/chat/config/workflows/introduction.conf", "timestamp": "2026-03-26T19:38:45.102267+00:00", "logger": "workflow.factory", "level": "INFO"}
+helix-base-1      | {"message": "Validated workflow config", "file": "/usr/src/app/chat/config/workflows/introduction.conf", "workflow_name": "default", "timestamp": "2026-03-26T19:38:45.108530+00:00", "logger": "workflow.factory", "level": "INFO"}
+helix-base-1      | {"message": "Found persona config", "file": "/usr/src/app/chat/config/personas/default.conf", "timestamp": "2026-03-26T19:38:45.109306+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Validated persona config", "file": "/usr/src/app/chat/config/personas/default.conf", "key": "default", "timestamp": "2026-03-26T19:38:45.112780+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Found persona config", "file": "/usr/src/app/chat/config/personas/civil_affairs_planner_jp_3_57_atp_60.conf", "timestamp": "2026-03-26T19:38:45.112827+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Validated persona config", "file": "/usr/src/app/chat/config/personas/civil_affairs_planner_jp_3_57_atp_60.conf", "key": "civil_affairs_planner_jp_3_57_atp_60", "timestamp": "2026-03-26T19:38:45.116292+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Found persona config", "file": "/usr/src/app/chat/config/personas/intel_analyst_jp_2_0.conf", "timestamp": "2026-03-26T19:38:45.116336+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Validated persona config", "file": "/usr/src/app/chat/config/personas/intel_analyst_jp_2_0.conf", "key": "intel_analyst_jp_2_0", "timestamp": "2026-03-26T19:38:45.119610+00:00", "logger": "persona.registry", "level": "INFO"}
+helix-base-1      | {"message": "Starting up the Chat Service", "version": "0.0.0-local", "timestamp": "2026-03-26T19:38:45.119673+00:00", "logger": "root", "level": "INFO"}
+helix-base-1      | {"message": "Initializing Dummy authentication provider", "timestamp": "2026-03-26T19:38:45.120801+00:00", "logger": "auth.oidc", "level": "INFO"}
+helix-base-1      | {"message": "Started server process [1]", "timestamp": "2026-03-26T19:38:45.215896+00:00", "logger": "uvicorn.error", "level": "INFO"}
+helix-base-1      | {"message": "Waiting for application startup.", "timestamp": "2026-03-26T19:38:45.215990+00:00", "logger": "uvicorn.error", "level": "INFO"}
+helix-base-1      | {"message": "Lifespan startup \u2014 a2a_card=None", "timestamp": "2026-03-26T19:38:45.216107+00:00", "logger": "root", "level": "INFO"}
+helix-base-1      | {"message": "FastAPI lifespan starting", "timestamp": "2026-03-26T19:38:45.216145+00:00", "logger": "chat.router", "level": "INFO"}
+helix-base-1      | {"message": "Initializing the user system store", "storage_type": "memory", "timestamp": "2026-03-26T19:38:45.216207+00:00", "logger": "chat.user_system", "level": "INFO"}
+helix-base-1      | {"message": "Application startup complete.", "timestamp": "2026-03-26T19:38:45.216258+00:00", "logger": "uvicorn.error", "level": "INFO"}
+helix-base-1      | {"message": "Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)", "timestamp": "2026-03-26T19:38:45.218834+00:00", "logger": "uvicorn.error", "level": "INFO"}
+currency-agent-1  | INFO:     Started server process [83]
+currency-agent-1  | INFO:     Waiting for application startup.
+currency-agent-1  | INFO:     Application startup complete.
+currency-agent-1  | INFO:     Uvicorn running on http://currency-agent:10000 (Press CTRL+C to quit)
+weather-agent-1   | INFO:     Started server process [84]
+weather-agent-1   | INFO:     Waiting for application startup.
+weather-agent-1   | INFO:     Application startup complete.
+weather-agent-1   | INFO:     Uvicorn running on http://weather-agent:10010 (Press CTRL+C to quit)
+ Container a2a-redis-1 Healthy 
+ Container a2a-redis-1 Healthy 
+ Container a2a-postgres-1 Healthy 
+ Container a2a-postgres-1 Healthy 
+registry-1        | INFO:     127.0.0.1:42578 - "GET /health HTTP/1.1" 200 OK
+ Container a2a-registry-1 Healthy 
+ Container a2a-helix-b-1 Starting 
+ Container a2a-clickhouse-1 Healthy 
+ Container a2a-minio-1 Healthy 
+ Container a2a-langfuse-worker-1 Starting 
+ Container a2a-minio-1 Healthy 
+ Container a2a-clickhouse-1 Healthy 
+ Container a2a-langfuse-web-1 Starting 
+ Container a2a-langfuse-worker-1 Started 
+ Container a2a-registry-1 Healthy 
+ Container a2a-helix-a-1 Starting 
+langfuse-worker-1  | 2026-03-26T19:38:51.078Z info 	No min project create date set, ClickhouseReadSkipCache will not pre-populate
+langfuse-worker-1  | 2026-03-26T19:38:51.079Z info 	trace-upsert executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.079Z info 	create-eval-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.079Z info 	trace-delete executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.080Z info 	score-delete executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.080Z info 	dataset-delete-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.080Z info 	project-delete executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.080Z info 	dataset-run-item-upsert-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	evaluation-execution-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	llm-as-a-judge-execution-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	secondary-evaluation-execution-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	batch-export-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	batch-action-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.081Z info 	otel-ingestion-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.082Z info 	ingestion-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.082Z info 	secondary-ingestion-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.082Z info 	experiment-create-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	posthog-integration-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	posthog-integration-processing-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	mixpanel-integration-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	mixpanel-integration-processing-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	blobstorage-integration-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.083Z info 	blobstorage-integration-processing-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.084Z info 	data-retention-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.084Z info 	data-retention-processing-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.084Z info 	webhook-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.084Z info 	entity-change-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.084Z info 	notification-queue executor started: true
+langfuse-worker-1  | 2026-03-26T19:38:51.091Z info 	Listening: http://9823f5d56fe7:3030
+langfuse-worker-1  | 2026-03-26T19:38:51.213Z info 	[Background Migration] No background migrations to run
+langfuse-worker-1  | 2026-03-26T19:38:51.221Z info 	Finished upserting default model prices in 244ms
+langfuse-worker-1  | 2026-03-26T19:38:51.222Z info 	Finished upserting Langfuse dashboards and widgets in 241ms
+langfuse-worker-1  | 2026-03-26T19:38:51.223Z info 	Finished upserting Langfuse dashboards and widgets in 242ms
+registry-1         | INFO:     127.0.0.1:42582 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+registry-1         | INFO:     178.128.69.202:45832 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | INFO:     178.128.69.202:37075 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | INFO:     178.128.69.202:30987 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:39704 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:39706 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:44806 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:31945 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:59910 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | INFO:     178.128.69.202:17903 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+registry-1         | INFO:     127.0.0.1:44810 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:55384 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:55396 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:21087 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:24832 - "GET /health HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:54095 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:60662 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:60670 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:54540 - "GET /health HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:63576 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:23864 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:34241 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:54556 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:52698 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:52702 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:62359 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:51861 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:61073 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:49878 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:49886 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:36628 - "GET /health HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:39135 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | INFO:     178.128.69.202:51268 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:29977 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:36636 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:52774 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:52786 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:38227 - "GET /health HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:42273 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:34510 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:39782 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:39786 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:54798 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:21152 - "GET /health HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:42076 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:43224 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:54804 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:49586 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:49588 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     178.128.69.202:45226 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+currency-agent-1   | INFO:     178.128.69.202:64752 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:19351 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:33028 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:33038 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:59406 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+registry-1         | INFO:     178.128.69.202:19759 - "GET /health HTTP/1.1" 200 OK
+currency-agent-1   | INFO:     178.128.69.202:43077 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+weather-agent-1    | WARNING:a2a.server.apps.jsonrpc.jsonrpc_app:Deprecated agent card endpoint '/.well-known/agent.json' accessed. Please use '/.well-known/agent-card.json' instead. This endpoint will be removed in a future version.
+weather-agent-1    | INFO:     178.128.69.202:63301 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:59422 - "GET /health HTTP/1.1" 200 OK
+registry-1         | INFO:     127.0.0.1:51558 - "GET /health HTTP/1.1" 200 OK

@@ -1,0 +1,62 @@
+##############################################################################
+# Helix MCP Apps Demo — MCP tool servers
+#
+# The MCP registry is in demo/mcp_registry/.
+# These are the MCP tool servers that register with the registry.
+#
+# Services:
+#   mcp_simple_chart  — Demo MCP App server (interactive charts, port 3131)
+#   mcp_query_duckdb  — Demo DuckDB query server (port 3099)
+#
+# Usage:
+#   docker compose up -d
+##############################################################################
+
+name: helix-mcp-apps-demo
+
+services:
+
+  # --------------------------------------------------------------------------
+  # Demo MCP App Server — interactive chart tools (bar, line, pie)
+  # --------------------------------------------------------------------------
+  mcp_simple_chart:
+    build:
+      context: mcp_simple_chart
+      dockerfile: Dockerfile
+    ports:
+      - "3131:3100"
+    networks:
+      - mcp-apps
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s = socket.create_connection(('localhost', 3100), timeout=3); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # Demo MCP DuckDB — query
+  # --------------------------------------------------------------------------
+  mcp_query_duckdb:
+    build:
+      context: mcp_query_duckdb
+      dockerfile: Dockerfile
+    ports:
+      - "3099:3099"
+    networks:
+      - mcp-apps
+    volumes:
+      - ./mcp_query_duckdb/data/databases:/app/databases:rw
+    environment:
+      - ACTIVE_DATASET=${ACTIVE_DATASET:-hormuz}
+      - DEMO_REPEATABLE_SEED=${DEMO_REPEATABLE_SEED:-17}
+      - SQLITE_DB_FILE_PATH=/app/databases/${ACTIVE_DATASET:-hormuz}.duckdb
+    healthcheck:
+      test: ["CMD", "python", "-m", "mcp_server.server"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  mcp-apps:
+    name: helix-mcp-apps-demo_default
+    external: true

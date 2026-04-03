@@ -1,0 +1,65 @@
+dataset:
+  name: caribbean
+  description: Caribbean Region - Telecommunications Data
+  region: Caribbean Sea / West Indies
+  countries:
+    - Cuba
+    - Jamaica
+    - Haiti
+    - Dominican Republic
+    - Puerto Rico
+
+generation:
+  cdr_count_per_country: 100
+  seed: 42
+  maid_location_variance_m: 150        # ±150 meters from CDR location
+  maid_time_variance_s: 60             # ±60 seconds from CDR time
+  expected_high_confidence_connections: "70-90%"
+
+tables:
+  - name: cdr
+    description: Call Detail Records - Telecommunications events
+    record_count: 500                  # 5 countries × 100 records
+
+  - name: maid
+    description: Mobile Advertising IDs - Device location pings
+    record_count: 750-1000             # 1-3 per CDR record
+
+  - name: connections_with_confidence
+    description: Links between MAID and CDR with confidence scores
+    record_count: 750-1000
+
+data_schema:
+  cdr:
+    - callingNumber VARCHAR
+    - calledNumber VARCHAR
+    - IMSI VARCHAR
+    - eventTime VARCHAR
+    - recordType VARCHAR (VOICE, SMS, DATA)
+    - LAT DOUBLE
+    - LON DOUBLE
+    - CGI VARCHAR
+    - MCC VARCHAR
+    - MNC VARCHAR
+    - LAC VARCHAR
+    - CID VARCHAR
+
+  maid:
+    - ID VARCHAR (UUID)
+    - ID_TYPE VARCHAR (AAID, IDFA)
+    - TIMESTAMP VARCHAR
+    - LATITUDE DOUBLE
+    - LONGITUDE DOUBLE
+    - DEVICE_MAKE VARCHAR
+    - DEVICE_MODEL VARCHAR
+    - DEVICE_OS VARCHAR (iOS, Android)
+    - DERIVED_COUNTRY VARCHAR (Cuba, Jamaica, Haiti, Dominican Republic, Puerto Rico)
+
+  connections_with_confidence:
+    - maid_id VARCHAR
+    - phone_number VARCHAR
+    - distance DOUBLE (meters)
+    - maid_timestamp VARCHAR
+    - cdr_timestamp VARCHAR
+    - confidence VARCHAR (high, medium, low)
+

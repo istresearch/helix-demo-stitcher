@@ -1,0 +1,36 @@
+##############################################################################
+# MCP Registry — MCP server discovery service
+#
+# Helix agents query this registry to discover available MCP tool servers.
+# Servers are pre-seeded from the config file at startup.
+#
+# Usage (standalone):
+#   docker compose up -d
+##############################################################################
+
+services:
+
+  mcp-registry:
+    build:
+      context: ../external/helix-mcp-registry
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      MCP_REGISTRY_HOST: "0.0.0.0"
+      MCP_REGISTRY_PORT: "9000"
+      MCP_REGISTRY_CONFIG_FILE: "/app/config/mcp_registry/mcp_registry.conf"
+    volumes:
+      - ./config/mcp_registry:/app/config/mcp_registry:ro
+    networks:
+      - mcp-apps
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  mcp-apps:
+    name: helix-mcp-apps-demo_default
+    external: true

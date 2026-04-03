@@ -1,0 +1,21 @@
+[project]
+name = "mcp-server-example"
+version = "0.1.0"
+description = "Helix is a Python-based service framework designed to streamline the development of generative AI chat applications."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.12.2",
+    "pyhocon>=0.3.61",
+    "pydantic>=2.12.4",
+    "pandas>=2.3.3",
+    "requests>=2.32.5",
+    "tabulate>=0.9.0",
+    "aiosqlite",
+    "duckdb>=1.2.0"
+]
+
+[project.optional-dependencies]
+test = [
+]
+

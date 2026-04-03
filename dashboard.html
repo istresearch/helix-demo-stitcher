@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Helix Demo Suite</title>
+  <link rel="icon" href="https://ok14static.oktacdn.com/bc/image/fileStoreRecord?id=fs0pz9709g4aDGVti696" type="image/x-icon" />
+  <link rel="shortcut icon" href="https://ok14static.oktacdn.com/bc/image/fileStoreRecord?id=fs0pz9709g4aDGVti696" type="image/x-icon" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --sidebar:   #161b27;
+      --border:    #252d3d;
+      --accent:    #4f8ef7;
+      --accent-h:  #6aa3ff;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --green:     #22c55e;
+      --red:       #ef4444;
+      --amber:     #f59e0b;
+      --sidebar-w: 256px;
+
+      /* per-demo accent colours */
+      --mcp-color:  #4f8ef7;   /* blue  */
+      --a2a-color:  #a78bfa;   /* violet */
+      --obs-color:  #34d399;   /* emerald */
+      --rag-color:  #f97316;   /* orange */
+    }
+
+    html, body { height: 100%; overflow: hidden; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── Layout ─────────────────────────────────────── */
+    #shell { display: flex; height: 100vh; }
+
+    /* ── Sidebar ────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    #sidebar header {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    #sidebar header h1 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+    #sidebar header p  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Demo filter tabs ───────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .filter-btn {
+      flex: 1;
+      padding: 4px 0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .12s, color .12s, border-color .12s;
+    }
+    .filter-btn:hover { background: rgba(255,255,255,.04); color: var(--text); }
+    .filter-btn.active[data-filter="all"]  { background: rgba(79,142,247,.15);  border-color: rgba(79,142,247,.4);  color: var(--mcp-color); }
+    .filter-btn.active[data-filter="app"]  { background: rgba(107,119,250,.15); border-color: rgba(167,139,250,.4); color: var(--a2a-color); }
+    .filter-btn.active[data-filter="mcp"]  { background: rgba(79,142,247,.15);  border-color: rgba(79,142,247,.4);  color: var(--mcp-color); }
+    .filter-btn.active[data-filter="a2a"]  { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.4); color: var(--a2a-color); }
+    .filter-btn.active[data-filter="rag"]  { background: rgba(249,115,22,.15);  border-color: rgba(249,115,22,.4);  color: var(--rag-color); }
+
+    /* ── Group labels with demo badge ───────────────── */
+    .group-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 14px 16px 6px;
+    }
+
+    .demo-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .demo-badge.mcp { background: rgba(79,142,247,.18); color: var(--mcp-color); }
+    .demo-badge.a2a { background: rgba(167,139,250,.18); color: var(--a2a-color); }
+    .demo-badge.rag { background: rgba(249,115,22,.18); color: var(--rag-color); }
+
+    /* hide items that don't match the active filter */
+    .nav-section { transition: opacity .15s; }
+    .nav-section.hidden { display: none; }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      border-left: 3px solid transparent;
+      transition: background .12s, border-color .12s;
+      color: var(--text);
+    }
+    .nav-btn:hover  { background: rgba(255,255,255,.04); }
+    .nav-btn.active { background: rgba(79,142,247,.1); border-left-color: var(--accent); }
+    .nav-btn.active[data-demo="a2a"] { background: rgba(167,139,250,.1); border-left-color: var(--a2a-color); }
+    .nav-btn.active[data-demo="rag"] { background: rgba(249,115,22,.1); border-left-color: var(--rag-color); }
+
+    .nav-icon {
+      font-size: 18px;
+      line-height: 1;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-info { flex: 1; overflow: hidden; }
+    .nav-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-port { font-size: 11px; color: var(--muted); }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--muted);
+      transition: background .3s;
+    }
+    .status-dot.up    { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .status-dot.down  { background: var(--red); }
+    .status-dot.check { background: var(--amber); }
+
+    #sidebar footer {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #sidebar footer a { color: var(--muted); text-decoration: none; }
+    #sidebar footer a:hover { color: var(--accent); }
+
+    /* ── Main area ──────────────────────────────────── */
+    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    #topbar {
+      height: 40px;
+      min-height: 40px;
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+    }
+
+    #current-label { font-size: 13px; font-weight: 600; }
+    #current-url   { font-size: 11px; color: var(--muted); font-family: monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    #open-btn {
+      flex-shrink: 0;
+      padding: 4px 10px;
+      font-size: 11px;
+      background: rgba(79,142,247,.15);
+      border: 1px solid rgba(79,142,247,.35);
+      border-radius: 4px;
+      color: var(--accent-h);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .12s;
+    }
+    #open-btn:hover { background: rgba(79,142,247,.28); }
+
+    #frame-wrap { flex: 1; position: relative; }
+
+    iframe {
+      width: 100%; height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    #no-embed {
+      position: absolute; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+    #no-embed.visible { display: flex; }
+    #no-embed svg { opacity: .35; }
+    #no-embed-btn {
+      padding: 8px 20px;
+      font-size: 13px;
+      background: rgba(79,142,247,.15);
+      border: 1px solid rgba(79,142,247,.35);
+      border-radius: 6px;
+      color: var(--accent-h);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .12s;
+    }
+    #no-embed-btn:hover { background: rgba(79,142,247,.28); }
+
+    #overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+    #overlay.hidden { opacity: 0; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- ── Sidebar ─────────────────────────────────── -->
+  <nav id="sidebar">
+    <header>
+      <h1>Helix Demo Suite</h1>
+      <p>Service dashboard</p>
+    </header>
+
+    <!-- filter tabs -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="app">App</button>
+      <button class="filter-btn" data-filter="mcp">MCP Apps</button>
+      <button class="filter-btn" data-filter="agents">Agents</button>
+      <button class="filter-btn" data-filter="rag">RAG KB</button>
+    </div>
+
+    <!-- ── MCP Apps ──────────────────────────────── -->
+    <div class="nav-section" data-section="app">
+
+      <div class="group-label"><span class="demo-badge mcp">App</span> UIs</div>
+
+      <button class="nav-btn"
+              data-demo="app"
+              data-url="http://localhost:5000"
+              data-health="http://localhost:5000"
+              data-name="UI"
+              data-port=":5000">
+        <span class="nav-icon">🖥️</span>
+        <div class="nav-info">
+          <div class="nav-name">Helix UI</div>
+          <div class="nav-port">localhost:5000</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+      </div>
+
+      <div class="nav-section" data-section="mcp">
+
+      <div class="group-label"><span class="demo-badge mcp">MCP</span> Registry</div>
+
+      <button class="nav-btn"
+              data-demo="mcp"
+              data-url="http://localhost:9000/docs"
+              data-health="http://localhost:9000/healthz"
+              data-name="MCP Registry"
+              data-port=":9000">
+        <span class="nav-icon">📋</span>
+        <div class="nav-info">
+          <div class="nav-name">MCP Registry</div>
+          <div class="nav-port">localhost:9000</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <div class="group-label"><span class="demo-badge mcp">MCP</span> Servers</div>
+
+      <button class="nav-btn"
+              data-demo="mcp"
+              data-url="http://localhost:3100/mcp"
+              data-health="http://localhost:3100/mcp"
+              data-name="Demo MCP App"
+              data-port=":3100"
+              data-no-embed="true">
+        <span class="nav-icon">📊</span>
+        <div class="nav-info">
+          <div class="nav-name">Demo MCP App</div>
+          <div class="nav-port">localhost:3100</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-url="http://localhost:3132"
+              data-health="http://localhost:3132/health"
+              data-name="helix-map"
+              data-port=":3132"
+              data-no-embed="true">
+        <span class="nav-icon">🗺️</span>
+        <div class="nav-info">
+          <div class="nav-name">helix-map</div>
+          <div class="nav-port">localhost:3132</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+    </div>
+
+    <!-- ── A2A ──────────────────────────────────── -->
+    <div class="nav-section" data-section="agents">
+      <div class="group-label"><span class="demo-badge a2a">A2A</span> Registry</div>
+
+      <button class="nav-btn"
+              data-demo="agents"
+              data-url="http://localhost:8100/docs"
+              data-health="http://localhost:8100/health"
+              data-name="A2A Registry"
+              data-port=":8100">
+        <span class="nav-icon">📋</span>
+        <div class="nav-info">
+          <div class="nav-name">Agent Registry</div>
+          <div class="nav-port">localhost:8100</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <div class="group-label"><span class="demo-badge a2a">A2A</span> Helix Instances</div>
+
+      <button class="nav-btn"
+              data-demo="agents"
+              data-url="http://localhost:8000/docs#/openai/chat_completions_v1_chat_completions_post"
+              data-health="http://localhost:8000/v1/healthz"
+              data-name="Helix-A"
+              data-port=":8000">
+        <span class="nav-icon">🅰</span>
+        <div class="nav-info">
+          <div class="nav-name">Helix-A</div>
+          <div class="nav-port">localhost:8000</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-demo="agents"
+              data-url="http://localhost:8001/docs#/openai/chat_completions_v1_chat_completions_post"
+              data-health="http://localhost:8001/v1/healthz"
+              data-name="Helix-B"
+              data-port=":8001">
+        <span class="nav-icon">🅱</span>
+        <div class="nav-info">
+          <div class="nav-name">Helix-B</div>
+          <div class="nav-port">localhost:8001</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <div class="group-label"><span class="demo-badge a2a">A2A</span> Leaf Agents</div>
+
+      <button class="nav-btn"
+              data-demo="agents"
+              data-url="http://localhost:10010/.well-known/agent.json"
+              data-health="http://localhost:10010/.well-known/agent.json"
+              data-name="Weather Agent"
+              data-port=":10010">
+        <span class="nav-icon">🌤</span>
+        <div class="nav-info">
+          <div class="nav-name">Weather Agent</div>
+          <div class="nav-port">localhost:10010</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-demo="agents"
+              data-url="http://localhost:10000/.well-known/agent.json"
+              data-health="http://localhost:10000/.well-known/agent.json"
+              data-name="Currency Agent"
+              data-port=":10000">
+        <span class="nav-icon">💱</span>
+        <div class="nav-info">
+          <div class="nav-name">Currency Agent</div>
+          <div class="nav-port">localhost:10000</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+    </div>
+
+    <!-- ── RAG Knowledge Base ──────────────────── -->
+    <div class="nav-section" data-section="rag">
+      <div class="group-label"><span class="demo-badge rag">RAG</span> Knowledge Base</div>
+
+      <button class="nav-btn"
+              data-demo="rag"
+              data-url="http://localhost:3200"
+              data-health="http://localhost:3200"
+              data-name="RAG KB UI"
+              data-port=":3200">
+        <span class="nav-icon">📚</span>
+        <div class="nav-info">
+          <div class="nav-name">RAG KB UI</div>
+          <div class="nav-port">localhost:3200</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-demo="rag"
+              data-url="http://localhost:8200/docs"
+              data-health="http://localhost:8200/health"
+              data-name="RAG KB API"
+              data-port=":8200">
+        <span class="nav-icon">🔌</span>
+        <div class="nav-info">
+          <div class="nav-name">RAG KB API</div>
+          <div class="nav-port">localhost:8200</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-demo="rag"
+              data-url="http://localhost:8201/mcp/mcp"
+              data-health="http://localhost:8201/v1/health"
+              data-name="RAG KB MCP"
+              data-port=":8201"
+              data-no-embed="true">
+        <span class="nav-icon">🧩</span>
+        <div class="nav-info">
+          <div class="nav-name">RAG KB MCP</div>
+          <div class="nav-port">localhost:8201</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+
+      <button class="nav-btn"
+              data-demo="rag"
+              data-url="http://localhost:6333/dashboard"
+              data-health="http://localhost:6333"
+              data-name="Qdrant"
+              data-port=":6333"
+              data-no-embed="true">
+        <span class="nav-icon">🔍</span>
+        <div class="nav-info">
+          <div class="nav-name">Qdrant Dashboard</div>
+          <div class="nav-port">localhost:6333</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+    </div>
+
+    <!-- ── Shared observability ──────────────────── -->
+    <div class="nav-section" data-section="shared">
+      <div class="group-label">Observability</div>
+
+      <button class="nav-btn"
+              data-demo="shared"
+              data-url="http://localhost:3000"
+              data-health="http://localhost:3000/api/public/health"
+              data-name="Langfuse"
+              data-port=":3000"
+              data-no-embed="true">
+        <span class="nav-icon">📈</span>
+        <div class="nav-info">
+          <div class="nav-name">Langfuse</div>
+          <div class="nav-port">localhost:3000</div>
+        </div>
+        <span class="status-dot check"></span>
+      </button>
+    </div>
+
+    <footer>
+      <a href="http://localhost:9000/v1/servers" target="_blank">MCP Registry JSON ↗</a>
+      <a href="http://localhost:8100/v1/agents"  target="_blank">A2A Registry JSON ↗</a>
+    </footer>
+  </nav>
+
+  <!-- ── Main ────────────────────────────────────── -->
+  <div id="main">
+    <div id="topbar">
+      <span id="current-label">Helix</span>
+      <span id="current-url">http://localhost:8000/docs#/openai/chat_completions_v1_chat_completions_post</span>
+      <a id="open-btn" href="http://localhost:8000/docs#/openai/chat_completions_v1_chat_completions_post" target="_blank">Open ↗</a>
+    </div>
+    <div id="frame-wrap">
+      <iframe id="frame" src="http://localhost:8000/docs#/openai/chat_completions_v1_chat_completions_post" title="Helix"></iframe>
+      <div id="overlay"><div class="spinner"></div></div>
+      <div id="no-embed">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+        </svg>
+        <span>This service cannot be embedded in an iframe.<br>Open it directly in a new tab.</span>
+        <a id="no-embed-btn" href="#" target="_blank">Open ↗</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const frame      = document.getElementById('frame');
+  const overlay    = document.getElementById('overlay');
+  const noEmbed    = document.getElementById('no-embed');
+  const noEmbedBtn = document.getElementById('no-embed-btn');
+  const labelEl    = document.getElementById('current-label');
+  const urlEl      = document.getElementById('current-url');
+  const openBtn    = document.getElementById('open-btn');
+  const buttons    = document.querySelectorAll('.nav-btn');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const sections   = document.querySelectorAll('.nav-section');
+
+  // ── Demo filter ─────────────────────────────────────────────────────────
+  filterBtns.forEach(fb => {
+    fb.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      fb.classList.add('active');
+      const filter = fb.dataset.filter;
+
+      sections.forEach(sec => {
+        const section = sec.dataset.section;
+        const visible = filter === 'all' || section === filter || section === 'shared';
+        sec.classList.toggle('hidden', !visible);
+      });
+    });
+  });
+
+  // ── Navigation ──────────────────────────────────────────────────────────
+  function navigate(btn) {
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const url        = btn.dataset.url;
+    const name       = btn.dataset.name;
+    const noEmbedSvc = btn.dataset.noEmbed === 'true';
+
+    labelEl.textContent = name;
+    urlEl.textContent   = url;
+    openBtn.href        = url;
+
+    if (noEmbedSvc) {
+      frame.src = 'about:blank';
+      overlay.classList.add('hidden');
+      noEmbed.classList.add('visible');
+      noEmbedBtn.href = url;
+    } else {
+      noEmbed.classList.remove('visible');
+      overlay.classList.remove('hidden');
+      frame.src = url;
+    }
+  }
+
+  frame.addEventListener('load', () => overlay.classList.add('hidden'));
+  buttons.forEach(btn => btn.addEventListener('click', () => navigate(btn)));
+
+  // ── Health checks ───────────────────────────────────────────────────────
+  async function checkHealth(btn) {
+    const dot = btn.querySelector('.status-dot');
+    const url = btn.dataset.health;
+    try {
+      await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(3000) });
+      dot.className = 'status-dot up';
+    } catch {
+      dot.className = 'status-dot down';
+    }
+  }
+
+  function pollAll() { buttons.forEach(checkHealth); }
+  pollAll();
+  setInterval(pollAll, 15000);
+</script>
+</body>
+</html>

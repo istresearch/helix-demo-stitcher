@@ -1,0 +1,240 @@
+##############################################################################
+# RAG Knowledge Base — Demo Integration
+#
+# Port remappings to avoid conflicts with the Helix demo stack:
+#   redis:    6379 → 6380  (demo Redis on 6379)
+#   postgres: 5432 → 5433  (demo PostgreSQL on 5432)
+#   qdrant:   6333/6334    (no conflict)
+#   api:      8000 → 8200  (Helix-A on 8000)
+#   mcp:      8080 → 8201  (helix-mcp-demo on 8080)
+#   ui:       3000 → 3200  (Langfuse on 3000)
+#
+##############################################################################
+
+services:
+
+  rag-kb-redis:
+    image: redis:7-alpine
+    container_name: rag-kb-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - rag_kb_redis_data:/data
+    networks:
+      - default
+      - rag-kb
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-postgres:
+    image: postgres:14-alpine
+    container_name: rag-kb-postgres
+    environment:
+      POSTGRES_USER: narrative_user
+      POSTGRES_PASSWORD: narrative_pass
+      POSTGRES_DB: narrative
+    ports:
+      - "5433:5432"
+    volumes:
+      - rag_kb_postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+      - rag-kb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U narrative_user -d narrative"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rag-kb-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - rag_kb_qdrant_data:/qdrant/storage
+    networks:
+      - default
+      - rag-kb
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/localhost/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-api:
+    build:
+      context: ../external/rag-knowledge-base
+      dockerfile: Dockerfile
+      args:
+        REPO_UN: ${REPO_UN:-changeme}
+        REPO_PW: ${REPO_PW:-changeme}
+    image: rag-kb-api:latest
+    container_name: rag-kb-api
+    environment:
+      LOG_LEVEL: INFO
+      HTTP_SERVER_BIND_ADDRESS: "0.0.0.0"
+      HTTP_SERVER_PORT: "8000"
+      APP_CONFIG_FILE: "./config/application.conf"
+      PERSONAS_DIR: "./config/personas"
+      WORKFLOWS_DIR: "./config/workflows"
+      QDRANT_URL: http://rag-kb-qdrant:6333
+      QDRANT_COLLECTION: knowledge_base
+      DB_HOST: rag-kb-postgres
+      DB_PORT: "5432"
+      DB_NAME: narrative
+      DB_USER: narrative_user
+      DB_PASSWORD: narrative_pass
+      AWS_REGION: us-east-1
+      REDIS_URL: redis://rag-kb-redis:6379
+      S3_BUCKET: rag-knowledge-base-dev
+    ports:
+      - "8200:8000"
+    depends_on:
+      rag-kb-postgres:
+        condition: service_healthy
+      rag-kb-qdrant:
+        condition: service_healthy
+      rag-kb-redis:
+        condition: service_healthy
+    volumes:
+      # Shared with rag-kb-ingest so local-fallback uploads are visible to both
+      - rag_kb_uploads:/data/uploads
+    networks:
+      default: {}
+      rag-kb:
+        # The RAG KB UI nginx config proxies /api/ to http://api:8000.
+        # This alias lets rag-kb-ui resolve "api" on the rag-kb network
+        # without conflicting with other services on the default network.
+        aliases:
+          - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-mcp:
+    build:
+      context: ../external/rag-knowledge-base
+      dockerfile: Dockerfile.mcp
+      args:
+        REPO_UN: ${REPO_UN:-changeme}
+        REPO_PW: ${REPO_PW:-changeme}
+    image: rag-kb-mcp:latest
+    container_name: rag-kb-mcp
+    environment:
+      LOG_LEVEL: INFO
+      HTTP_SERVER_BIND_ADDRESS: "0.0.0.0"
+      HTTP_SERVER_PORT: "8080"
+      QDRANT_URL: http://rag-kb-qdrant:6333
+      QDRANT_COLLECTION: knowledge_base
+    ports:
+      - "8201:8080"
+    depends_on:
+      rag-kb-qdrant:
+        condition: service_healthy
+    networks:
+      - default
+      - rag-kb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-ui:
+    build:
+      context: ../external/rag-knowledge-base
+      dockerfile: Dockerfile.ui
+    image: rag-kb-ui:latest
+    container_name: rag-kb-ui
+    environment:
+      VITE_API_BASE_URL: http://localhost:8200
+    ports:
+      - "3200:8080"
+    depends_on:
+      rag-kb-api:
+        condition: service_healthy
+    networks:
+      - rag-kb
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    profiles:
+      - external
+
+  rag-kb-ingest:
+    build:
+      context: ../external/rag-knowledge-base
+      dockerfile: Dockerfile.ingestion
+      args:
+        REPO_UN: ${REPO_UN:-changeme}
+        REPO_PW: ${REPO_PW:-changeme}
+    image: rag-kb-ingest:latest
+    container_name: rag-kb-ingest
+    environment:
+      LOG_LEVEL: INFO
+      QDRANT_URL: http://rag-kb-qdrant:6333
+      QDRANT_COLLECTION: knowledge_base
+      REDIS_URL: redis://rag-kb-redis:6379
+      S3_BUCKET: rag-knowledge-base-dev
+      AWS_REGION: us-east-1
+      DB_HOST: rag-kb-postgres
+      DB_PORT: "5432"
+      DB_NAME: narrative
+      DB_USER: narrative_user
+      DB_PASSWORD: narrative_pass
+    depends_on:
+      rag-kb-redis:
+        condition: service_healthy
+      rag-kb-qdrant:
+        condition: service_healthy
+    volumes:
+      # Shared with rag-kb-api so local-fallback uploads are visible to both
+      - rag_kb_uploads:/data/uploads
+    networks:
+      - default
+      - rag-kb
+    restart: unless-stopped
+    profiles:
+      - external
+
+networks:
+  rag-kb:
+    name: rag-kb_internal
+
+volumes:
+  rag_kb_redis_data:
+    driver: local
+  rag_kb_postgres_data:
+    driver: local
+  rag_kb_qdrant_data:
+    driver: local
+  rag_kb_uploads:
+    driver: local

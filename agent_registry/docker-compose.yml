@@ -1,0 +1,30 @@
+##############################################################################
+# A2A Agent Registry — agent discovery service
+#
+# Helix instances self-register on startup and discover each other here.
+#
+# Usage (standalone):
+#   docker compose up -d
+##############################################################################
+
+services:
+
+  registry:
+    build:
+      context: ../external/helix-agent-registry
+    ports:
+      - "8100:8100"
+    environment:
+      - A2A_REGISTRY_STORAGE_BACKEND=memory
+      - A2A_REGISTRY_API_KEY=${A2A_REGISTRY_API_KEY:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+networks:
+  default:
+    name: a2a_default
+    external: true

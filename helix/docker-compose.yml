@@ -1,0 +1,80 @@
+##############################################################################
+# Helix — shared service for all demos
+#
+# Build the helix images and run a single Helix instance on port 8000.
+# All demos (mcp_apps, a2a) depend on this being started first.
+#
+# Usage:
+#   cp .env.template .env   # fill in LLM credentials
+#   docker compose up -d --build
+#
+# The a2a demo also uses the images built here; run this first so that
+# local/helix:latest and local/helix-examples:latest are available.
+##############################################################################
+
+name: helix
+
+services:
+
+  # ---------- Build-only: Helix core image ----------
+  helix-base:
+    build:
+      context: ../external/helix
+      dockerfile: ./chat/Dockerfile
+      args:
+        VERSION_TAG: "0.0.1-demo"
+    image: local/helix:latest
+    entrypoint: ["true"]
+
+  # ---------- Build-only: Helix examples image (LangGraph workflows) ----------
+  helix-examples-build:
+    build:
+      context: ../external/helix
+      dockerfile: ./chat_examples/Dockerfile
+      args:
+        BASE_REPO: "local/helix"
+        BASE_IMAGE_TAG: "latest"
+        VERSION_TAG: "0.0.1-demo"
+    image: local/helix-examples:latest
+    entrypoint: ["true"]
+    depends_on:
+      helix-base:
+        condition: service_completed_successfully
+
+  # ---------- Helix ----------
+  # Runs all workflows from demo/workflows/.
+  # Enable MCP or A2A features by setting env vars below.
+  helix:
+    image: local/helix-examples:latest
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      APP_CONFIG_FILE: /app/config/application.conf
+      WORKFLOWS_DIR: /app/config/workflows
+      PROMPTS_DIR: /app/config/prompts
+
+      # MCP Apps — enable and point at mcp_simple_chart (started by demo/mcp_apps)
+      # Set AGENT_MCP_ENABLED=true in .env to activate
+      AGENT_MCP_ENABLED: ${AGENT_MCP_ENABLED:-false}
+      MCP_SIMPLE_CHART_URL: ${mcp_simple_chart_URL:-http://host.docker.internal:3131/mcp}
+      MCP_REGISTRY_ENABLED: ${MCP_REGISTRY_ENABLED:-false}
+      MCP_REGISTRY_URL: ${MCP_REGISTRY_URL:-http://mcp-registry:9000}
+
+      # A2A — enable to connect this instance to the A2A registry
+      # Set A2A_ENABLED=true and A2A_REGISTRY_ENABLED=true in .env to activate
+      A2A_ENABLED: ${A2A_ENABLED:-false}
+      A2A_REGISTRY_ENABLED: ${A2A_REGISTRY_ENABLED:-false}
+      A2A_REGISTRY_URL: ${A2A_REGISTRY_URL:-http://host.docker.internal:8100}
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - default
+      - mcp-apps
+
+networks:
+  default:
+    name: helix_default
+  mcp-apps:
+    name: helix-mcp-apps-demo_default
+    external: true

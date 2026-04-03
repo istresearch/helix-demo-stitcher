@@ -1,0 +1,109 @@
+##############################################################################
+# Helix Demo — Unified Composition
+#
+# This file orchestrates:
+#   - demo/agent_registry/  (A2A agent registry)
+#   - demo/mcp_registry/    (MCP server registry)
+#   - demo/a2a/             (Helix-A, Helix-B, leaf agents, Langfuse)
+#   - demo/mcp_apps/        (MCP tool servers: charts, DuckDB)
+#   - External projects     (helix-mcp-demo, helix-map, helix-ui)
+#
+# Usage:
+#   # Copy .env template and fill in LLM credentials
+#   cp demo/a2a/.env.template demo/a2a/.env
+#
+#   # Build all images (including external projects)
+#   docker compose -f demo/docker-compose.yml --profile build up --build
+#
+#   # Start the full stack
+#   docker compose -f demo/docker-compose.yml up -d
+#
+##############################################################################
+
+include:
+  - path: ./agent_registry/docker-compose.yml
+  - path: ./mcp_registry/docker-compose.yml
+  - path: ./a2a/docker-compose.yml
+  - path: ./mcp_apps/docker-compose.yml
+  - path: ./rag_kb/docker-compose.yml
+
+services:
+
+  helix-mcp-demo:
+    build:
+      context: ./external/helix-mcp-demo
+      dockerfile: Dockerfile
+    image: helix-mcp-demo:latest
+    container_name: helix-mcp-demo
+    ports:
+      - "3100-3130:3100-3130"
+      - "3150:3150"
+      - "4325:4325"
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - default
+    profiles:
+      - external
+
+  helix-map:
+    build:
+      context: ./external/helix-map
+      dockerfile: Dockerfile
+    image: helix-map:latest
+    container_name: helix-map
+    ports:
+      - "3132:3132"
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    networks:
+      - default
+    profiles:
+      - external
+
+  helix-ui:
+    build:
+      context: ./external/helix-ui
+      dockerfile: Dockerfile
+      args:
+        WORKFLOW: deep_wired
+    image: helix-ui:local
+    container_name: helix-ui
+    ports:
+      - "5000:5000"
+    env_file:
+      - path: ./external/helix-ui/.env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - LOGGER_TARGET=pino
+      - LOGGER_LEVEL=info
+      - SESSION_SECRET=demo-secret-key-change-in-production
+      - SESSION_STORE_TYPE=memory
+      - PROVIDER=openai-compatible
+      - MODEL=default
+      - WORKFLOW=deep_wired
+      - API_URL=http://host.docker.internal:8000/v1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - AUTH_MODE=UNPW
+      - AUTH_USERNAME=admin
+      - AUTH_PASSWORD=admin
+      - UPLOADS_ALLOWED_MIME_TYPES=text/plain,text/csv,application/json,image/png,image/jpeg,image/gif
+    networks:
+      - default
+    profiles:
+      - external
+
+networks:
+  # Override the sub-compose files' "external: true" so the unified
+  # compose creates these networks itself.
+  default:
+    name: helix-demo_default
+    external: false
+  mcp-apps:
+    name: helix-mcp-apps-demo_default
+    external: false
