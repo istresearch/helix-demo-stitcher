@@ -413,13 +413,9 @@ build_docker_images() {
 
     cd "$DEMO_DIR"
 
-    # Build the base Helix images first.
-    # helix-a and helix-b use "local/helix-examples:latest" which is
-    # produced by helix-examples-build, whose Dockerfile does
-    # FROM local/helix:latest — so helix-base must be built first.
-    # helix-base and helix-examples-build are on the "build" profile.
-    # They must be built sequentially: helix-examples Dockerfile does
-    # FROM local/helix:latest which is produced by helix-base.
+    # Build the base Helix images first (must be sequential).
+    # helix-examples Dockerfile does FROM local/helix:latest which is
+    # produced by helix-base, so helix-base must complete first.
     log_info "Building helix-base image (local/helix:latest)..."
     if ! docker compose --profile build build helix-base 2>&1 | tail -5; then
         log_error "Failed to build helix-base. Aborting."
@@ -434,23 +430,48 @@ build_docker_images() {
     fi
     log_success "helix-examples built"
 
-    log_info "Building internal services (A2A registry, MCP registry, MCP Apps, agents)..."
-    docker compose build 2>&1 | grep -E "(Building|Successfully|ERROR)" || true
-    log_success "Internal services built"
+    # All remaining builds are independent — run them in parallel.
+    log_info "Building all remaining services in parallel..."
 
-    # Build each external service independently so one failure doesn't block the rest.
-    log_info "Building external services..."
+    local build_log_dir
+    build_log_dir=$(mktemp -d)
+    local pids=()
+    local svc_names=()
+
+    # Internal services (A2A registry, MCP registry, MCP Apps, agents)
+    (docker compose build > "$build_log_dir/internal.log" 2>&1) &
+    pids+=($!)
+    svc_names+=("internal services")
+
+    # External services
     for svc in helix-mcp-demo helix-map helix-ui rag-kb-api rag-kb-mcp rag-kb-ui rag-kb-ingest; do
-        log_info "Building $svc..."
-        local build_output
-        build_output=$(docker compose --profile external build "$svc" 2>&1)
-        if [ $? -eq 0 ]; then
-            log_success "$svc built"
+        (docker compose --profile external build "$svc" > "$build_log_dir/$svc.log" 2>&1) &
+        pids+=($!)
+        svc_names+=("$svc")
+    done
+
+    log_info "Waiting for ${#pids[@]} parallel builds to complete..."
+
+    # Wait for all builds and report results
+    local log_names=("internal" "helix-mcp-demo" "helix-map" "helix-ui" "rag-kb-api" "rag-kb-mcp" "rag-kb-ui" "rag-kb-ingest")
+    local failed=0
+    for i in "${!pids[@]}"; do
+        if wait "${pids[$i]}"; then
+            log_success "${svc_names[$i]} built"
         else
-            log_warning "$svc failed to build (skipping)"
-            echo "$build_output" | grep -i "error\|failed" | tail -3
+            log_warning "${svc_names[$i]} failed to build (skipping)"
+            grep -i "error\|failed" "$build_log_dir/${log_names[$i]}.log" 2>/dev/null | tail -3
+            failed=$((failed + 1))
         fi
     done
+
+    rm -rf "$build_log_dir"
+
+    if [ $failed -gt 0 ]; then
+        log_warning "$failed build(s) failed — see warnings above"
+    else
+        log_success "All images built successfully"
+    fi
 }
 
 # Start services
