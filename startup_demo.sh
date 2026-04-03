@@ -30,7 +30,7 @@ DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXTERNAL_DIR="$DEMO_DIR/external"
 SCRIPT_DIR="$DEMO_DIR"
 
-# Load DEMO_DATASET from a2a/.env if it exists
+# Load shared env vars from a2a/.env if it exists
 if [ -f "$DEMO_DIR/a2a/.env" ]; then
     # Source only DEMO_DATASET if it exists in the file
     DEMO_DATASET_FROM_ENV=$(grep "^DEMO_DATASET=" "$DEMO_DIR/a2a/.env" | cut -d'=' -f2)
@@ -42,6 +42,16 @@ if [ -f "$DEMO_DIR/a2a/.env" ]; then
     DEMO_REPEATABLE_SEED_FROM_ENV=$(grep "^DEMO_REPEATABLE_SEED=" "$DEMO_DIR/a2a/.env" | cut -d'=' -f2)
     if [ -n "$DEMO_REPEATABLE_SEED_FROM_ENV" ]; then
         export DEMO_REPEATABLE_SEED="$DEMO_REPEATABLE_SEED_FROM_ENV"
+    fi
+
+    # Load IST private registry credentials (needed by rag-kb Docker builds)
+    REPO_UN_FROM_ENV=$(grep "^REPO_UN=" "$DEMO_DIR/a2a/.env" | cut -d'=' -f2)
+    if [ -n "$REPO_UN_FROM_ENV" ]; then
+        export REPO_UN="$REPO_UN_FROM_ENV"
+    fi
+    REPO_PW_FROM_ENV=$(grep "^REPO_PW=" "$DEMO_DIR/a2a/.env" | cut -d'=' -f2)
+    if [ -n "$REPO_PW_FROM_ENV" ]; then
+        export REPO_PW="$REPO_PW_FROM_ENV"
     fi
 fi
 
@@ -140,6 +150,15 @@ check_config_files() {
         fi
     fi
     log_success ".env file found"
+
+    # Check IST private registry credentials (needed for rag-knowledge-base builds)
+    if [ -z "${REPO_UN}" ] || [ -z "${REPO_PW}" ]; then
+        log_warning "REPO_UN / REPO_PW not set in a2a/.env"
+        log_info "RAG Knowledge Base images (rag-kb-api, rag-kb-mcp, rag-kb-ingest) will fail to build"
+        log_info "Add REPO_UN=<user> and REPO_PW=<pass> to $env_file for IST private PyPI access"
+    else
+        log_success "IST private registry credentials found (REPO_UN/REPO_PW)"
+    fi
 
     # Check for .duckdb file in mcp_query_duckdb/data/databases/ directory
     local duckdb_dir="$DEMO_DIR/mcp_apps/mcp_query_duckdb/data/databases"
@@ -474,23 +493,70 @@ build_docker_images() {
 
     log_info "Waiting for ${#pids[@]} parallel builds to complete..."
 
-    # Wait for all builds and report results
+    # Poll all PIDs so we can show a heartbeat while builds run
     local log_names=("internal" "helix-mcp-demo" "helix-map" "helix-ui" "rag-kb-api" "rag-kb-mcp" "rag-kb-ui" "rag-kb-ingest")
     local failed=0
-    for i in "${!pids[@]}"; do
-        if wait "${pids[$i]}"; then
-            log_success "${svc_names[$i]} built"
-        else
-            log_warning "${svc_names[$i]} failed to build (skipping)"
-            grep -i "error\|failed" "$build_log_dir/${log_names[$i]}.log" 2>/dev/null | tail -3
-            failed=$((failed + 1))
+    local failed_names=()
+    local total=${#pids[@]}
+    local done_count=0
+    local -a reported=()   # 1 = already reported, empty = pending
+    local spinner_chars='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local spin_idx=0
+
+    while [ $done_count -lt $total ]; do
+        for i in "${!pids[@]}"; do
+            [ -n "${reported[$i]}" ] && continue   # already handled
+            if ! kill -0 "${pids[$i]}" 2>/dev/null; then
+                # Process finished — collect exit status
+                wait "${pids[$i]}"
+                local exit_code=$?
+                reported[$i]=1
+                done_count=$((done_count + 1))
+                # Clear the spinner line before printing result
+                printf "\r\033[K"
+                if [ $exit_code -eq 0 ]; then
+                    log_success "${svc_names[$i]} built"
+                else
+                    log_warning "${svc_names[$i]} failed to build (skipping)"
+                    tail -20 "$build_log_dir/${log_names[$i]}.log" 2>/dev/null \
+                        | grep -iE "error|failed|timeout|401|403|404|not found|exit code" \
+                        | tail -5
+                    failed=$((failed + 1))
+                    failed_names+=("${svc_names[$i]}")
+                fi
+            fi
+        done
+        if [ $done_count -lt $total ]; then
+            local sc=${spinner_chars:$spin_idx:1}
+            spin_idx=$(( (spin_idx + 1) % ${#spinner_chars} ))
+            printf "\r  ${BLUE}%s${NC} Building... %d/%d complete" "$sc" "$done_count" "$total"
+            sleep 2
         fi
     done
+    # Clear any residual spinner text
+    printf "\r\033[K"
 
     rm -rf "$build_log_dir"
 
     if [ $failed -gt 0 ]; then
         log_warning "$failed build(s) failed — see warnings above"
+        echo ""
+        # Provide actionable hints for common failure patterns
+        for name in "${failed_names[@]}"; do
+            case "$name" in
+                rag-kb-api|rag-kb-mcp|rag-kb-ingest)
+                    if [ -z "${REPO_UN}" ] || [ -z "${REPO_PW}" ]; then
+                        log_info "  $name: Likely missing REPO_UN/REPO_PW in a2a/.env (IST private PyPI)"
+                    fi
+                    ;;
+                helix-ui)
+                    log_info "  $name: If 'Connect Timeout', retry — may be a transient npm registry issue"
+                    ;;
+                helix-mcp-demo)
+                    log_info "  $name: TypeScript/build error in external repo — check branch ${EXTERNAL_PROJECTS[3]##* }"
+                    ;;
+            esac
+        done
     else
         log_success "All images built successfully"
     fi
