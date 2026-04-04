@@ -188,4 +188,4 @@ mcp_server_example/data/*
 
 *.duckdb
 
-demo/external/
+external/
